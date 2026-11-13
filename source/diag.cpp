@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+extern "C" {
 #include <input/input.h>
 #include <usb/usbmain.h>
 #include <ppc/cache.h>
 #include <time/time.h>
+}
 #include "diag.h"
 
 extern char bss_start[];
@@ -68,11 +70,3 @@ void diag_wait_a() {
     printf("diag: aperte A para continuar\n");
     controller_data_s pad, prev;
     memset(&pad, 0, sizeof(pad));
-    memset(&prev, 0, sizeof(prev));
-    for (;;) {
-        usb_do_poll();
-        if (get_controller_data(&pad, 0) && pad.a && !prev.a) return;
-        prev = pad;
-        mdelay(20);
-    }
-}
