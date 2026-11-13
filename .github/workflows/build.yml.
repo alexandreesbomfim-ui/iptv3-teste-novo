@@ -1,0 +1,24 @@
+name: Build Xbox 360 (libxenon)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Testar parser M3U e mapeamento do framebuffer
+        run: |
+          g++ -std=c++11 -Wall -Wextra -o t_m3u tests/test_m3u.cpp source/m3u.cpp
+          ./t_m3u tests/sample.m3u
+          g++ -std=c++11 -o t_tile tests/test_tile.cpp
+          ./t_tile
+      - name: Testar player MPEG-1 (decodificacao e audio)
+        run: |
+          g++ -std=c++11 -O2 -o t_player tests/host_player_test.cpp source/player_core.cpp
+          ./t_player
