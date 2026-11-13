@@ -41,10 +41,8 @@ void diag_snapshot() {
 int diag_check(const char* stage, bool restore) {
     if (!g_copy) return -1;
     int n = 0;
-    uint32_t first = 0;
     for (uint32_t a = g_lo; a < g_hi; a += 128) {
         if (memcmp((void*)(uintptr_t)a, g_copy + (a - g_lo), 128) != 0) {
-            if (n == 0) first = a;
             if (g_shown < 6) {
                 uint32_t* c = (uint32_t*)(uintptr_t)a;
                 uint32_t* o = (uint32_t*)(g_copy + (a - g_lo));
@@ -62,7 +60,7 @@ int diag_check(const char* stage, bool restore) {
             }
         }
     }
-    printf("diag[%s]: %d linhas alteradas%s\n", stage, n, (n && first) ? "" : "");
+    printf("diag[%s]: %d linhas alteradas\n", stage, n);
     return n;
 }
 
@@ -70,3 +68,11 @@ void diag_wait_a() {
     printf("diag: aperte A para continuar\n");
     controller_data_s pad, prev;
     memset(&pad, 0, sizeof(pad));
+    memset(&prev, 0, sizeof(prev));
+    for (;;) {
+        usb_do_poll();
+        if (get_controller_data(&pad, 0) && pad.a && !prev.a) return;
+        prev = pad;
+        mdelay(20);
+    }
+}
