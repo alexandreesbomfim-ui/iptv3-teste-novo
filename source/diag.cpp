@@ -17,13 +17,11 @@ static uint8_t* g_copy = 0;
 static uint32_t g_lo = 0, g_hi = 0;
 static int g_shown = 0;
 
-static uint32_t crc32(const uint8_t* p, uint32_t n) {
-    uint32_t c = 0xFFFFFFFFu;
-    while (n--) {
-        c ^= *p++;
-        for (int k = 0; k < 8; ++k) c = (c >> 1) ^ (0xEDB88320u & (0u - (c & 1)));
-    }
-    return ~c;
+static uint32_t soma(const uint8_t* p, uint32_t n) {
+    uint32_t c = 0;
+    const uint32_t* w = (const uint32_t*)p;
+    for (uint32_t i = 0; i < n / 4; ++i) c = (c << 1 | c >> 31) ^ w[i];
+    return c;
 }
 
 void diag_snapshot() {
@@ -33,8 +31,8 @@ void diag_snapshot() {
     if (!g_copy) { printf("diag: sem memoria\n"); return; }
     memcpy(g_copy, (void*)(uintptr_t)g_lo, g_hi - g_lo);
     uint32_t* w = (uint32_t*)0x8003bf00u;
-    printf("diag: regiao %08x-%08x crc=%08x\n", g_lo, g_hi,
-           crc32((const uint8_t*)(uintptr_t)g_lo, g_hi - g_lo));
+    printf("diag: regiao %08x-%08x soma=%08x\n", g_lo, g_hi,
+           soma((const uint8_t*)(uintptr_t)g_lo, g_hi - g_lo));
     printf("diag: @8003bef0: %08x %08x %08x %08x | %08x\n", w[-4], w[-3], w[-2], w[-1], w[0]);
 }
 
